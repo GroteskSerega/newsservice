@@ -7,9 +7,7 @@ import java.util.List;
 
 public interface NewsService {
 
-    List<News> filterBy(NewsFilter filter);
-
-    List<News> findAll();
+    List<News> findAll(NewsFilter filter);
 
     News findById(Long id);
 

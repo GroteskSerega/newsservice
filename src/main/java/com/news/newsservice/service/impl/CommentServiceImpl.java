@@ -24,17 +24,12 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
 
     @Override
-    public List<Comment> filterBy(CommentFilter filter) {
+    public List<Comment> findAll(CommentFilter filter) {
         return commentRepository.findAll(CommentSpecification.withFilter(filter),
                 PageRequest.of(
                         filter.getPageNumber(),
                         filter.getPageSize()
                 )).getContent();
-    }
-
-    @Override
-    public List<Comment> findAll() {
-        return commentRepository.findAll();
     }
 
     @Override

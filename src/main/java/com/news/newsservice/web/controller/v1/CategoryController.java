@@ -34,28 +34,6 @@ public class CategoryController {
 
     @Operation(
             summary = "Get categories",
-            description = "Get all categories"
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    content = {
-                            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = CategoryListResponse.class))
-                    }
-            )
-    })
-    @GetMapping
-    public ResponseEntity<CategoryListResponse> findAll() {
-        return ResponseEntity.ok(
-                categoryMapper.categoryListToCategoryListResponse(
-                        categoryService.findAll()
-                )
-        );
-    }
-
-    @Operation(
-            summary = "Get categories",
             description = "Get categories by filters"
     )
     @ApiResponses({
@@ -63,7 +41,7 @@ public class CategoryController {
                     responseCode = "200",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = CategoryListResponse.class))
+                            schema = @Schema(implementation = CategoryListResponse.class))
                     }
             ),
             @ApiResponse(
@@ -74,11 +52,11 @@ public class CategoryController {
                     }
             )
     })
-    @GetMapping("/filter")
-    public ResponseEntity<CategoryListResponse> filterBy(@Valid CategoryFilter filter) {
+    @GetMapping
+    public ResponseEntity<CategoryListResponse> findAll(@Valid CategoryFilter filter) {
         return ResponseEntity.ok(
                 categoryMapper.categoryListToCategoryListResponse(
-                        categoryService.filterBy(filter)
+                        categoryService.findAll(filter)
                 )
         );
     }

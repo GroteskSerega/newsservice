@@ -33,28 +33,6 @@ public class CommentController {
 
     @Operation(
             summary = "Get comments",
-            description = "Get all comments"
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    content = {
-                            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = CommentListResponse.class))
-                    }
-            )
-    })
-    @GetMapping
-    public ResponseEntity<CommentListResponse> findAll() {
-        return ResponseEntity.ok(
-                commentMapper.commentListToCommentListResponse(
-                        commentService.findAll()
-                )
-        );
-    }
-
-    @Operation(
-            summary = "Get comments",
             description = "Get comments by filters"
     )
     @ApiResponses({
@@ -73,11 +51,11 @@ public class CommentController {
                     }
             )
     })
-    @GetMapping("/filter")
-    public ResponseEntity<CommentListResponse> filterBy(@Valid CommentFilter commentFilter) {
+    @GetMapping
+    public ResponseEntity<CommentListResponse> findAll(@Valid CommentFilter commentFilter) {
         return ResponseEntity.ok(
                 commentMapper.commentListToCommentListResponse(
-                        commentService.filterBy(commentFilter)
+                        commentService.findAll(commentFilter)
                 )
         );
     }

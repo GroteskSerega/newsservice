@@ -42,28 +42,6 @@ public class NewsController {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = NewsListResponse.class))
                     }
-            )
-    })
-    @GetMapping
-    public ResponseEntity<NewsListResponse> findAll() {
-        return ResponseEntity.ok(
-                newsMapper.newsListToNewsListResponse(
-                        newsService.findAll()
-                )
-        );
-    }
-
-    @Operation(
-            summary = "Get news",
-            description = "Get news by filters"
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    content = {
-                            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = NewsListResponse.class))
-                    }
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -73,11 +51,11 @@ public class NewsController {
                     }
             )
     })
-    @GetMapping("/filter")
-    public ResponseEntity<NewsListResponse> filterBy(@Valid NewsFilter filter) {
+    @GetMapping
+    public ResponseEntity<NewsListResponse> findAll(@Valid NewsFilter filter) {
         return ResponseEntity.ok(
                 newsMapper.newsListToNewsListResponse(
-                        newsService.filterBy(filter)
+                        newsService.findAll(filter)
                 )
         );
     }
