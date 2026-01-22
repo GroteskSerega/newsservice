@@ -23,17 +23,12 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public List<User> filterBy(UserFilter filter) {
+    public List<User> findAll(UserFilter filter) {
         return userRepository.findAll(UserSpecification.withFilter(filter),
                 PageRequest.of(
                         filter.getPageNumber(),
                         filter.getPageSize()
                 )).getContent();
-    }
-
-    @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
     }
 
     @Override

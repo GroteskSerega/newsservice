@@ -33,28 +33,6 @@ public class UserController {
 
     @Operation(
             summary = "Get users",
-            description = "Get all users"
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    content = {
-                            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserListResponse.class))
-                    }
-            )
-    })
-    @GetMapping
-    public ResponseEntity<UserListResponse> findAll() {
-        return ResponseEntity.ok(
-                userMapper.userListToUserListResponse(
-                        userService.findAll()
-                )
-        );
-    }
-
-    @Operation(
-            summary = "Get users",
             description = "Get users by filters"
     )
     @ApiResponses({
@@ -62,7 +40,7 @@ public class UserController {
                     responseCode = "200",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = UserListResponse.class))
+                            schema = @Schema(implementation = UserListResponse.class))
                     }
             ),
             @ApiResponse(
@@ -73,11 +51,11 @@ public class UserController {
                     }
             )
     })
-    @GetMapping("/filter")
-    public ResponseEntity<UserListResponse> filterBy(@Valid UserFilter filter) {
+    @GetMapping
+    public ResponseEntity<UserListResponse> findAll(@Valid UserFilter filter) {
         return ResponseEntity.ok(
                 userMapper.userListToUserListResponse(
-                        userService.filterBy(filter)
+                        userService.findAll(filter)
                 )
         );
     }

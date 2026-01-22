@@ -24,17 +24,12 @@ public class NewsServiceImpl implements NewsService {
     private final NewsRepository newsRepository;
 
     @Override
-    public List<News> filterBy(NewsFilter filter) {
+    public List<News> findAll(NewsFilter filter) {
         return newsRepository.findAll(NewsSpecification.withFilter(filter),
                 PageRequest.of(
                         filter.getPageNumber(),
                         filter.getPageSize()
                 )).getContent();
-    }
-
-    @Override
-    public List<News> findAll() {
-        return newsRepository.findAll();
     }
 
     @Override

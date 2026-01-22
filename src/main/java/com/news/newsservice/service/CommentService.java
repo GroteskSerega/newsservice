@@ -7,9 +7,7 @@ import java.util.List;
 
 public interface CommentService {
 
-    List<Comment> filterBy(CommentFilter filter);
-
-    List<Comment> findAll();
+    List<Comment> findAll(CommentFilter filter);
 
     Comment findById(Long id);
 

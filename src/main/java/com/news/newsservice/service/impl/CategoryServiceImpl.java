@@ -23,17 +23,12 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Override
-    public List<Category> filterBy(CategoryFilter filter) {
+    public List<Category> findAll(CategoryFilter filter) {
         return categoryRepository.findAll(CategorySpecification.withFilter(filter),
                 PageRequest.of(
                         filter.getPageNumber(),
                         filter.getPageSize()
                 )).getContent();
-    }
-
-    @Override
-    public List<Category> findAll() {
-        return categoryRepository.findAll();
     }
 
     @Override

@@ -64,7 +64,7 @@ public class AuthUsernameAspect {
 
         Comment comment = commentService.findById(commentId);
 
-        if (comment.getUser().getUsername().equals(username)) {
+        if (!comment.getUser().getUsername().equals(username)) {
             throw new OperationUnauthorizedException(TEMPLATE_OPERATION_UNAUTHORIZED);
         }
     }

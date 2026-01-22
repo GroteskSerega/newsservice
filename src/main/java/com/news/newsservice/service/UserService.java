@@ -8,9 +8,7 @@ import java.util.List;
 
 public interface UserService {
 
-    List<User> filterBy(UserFilter filter);
-
-    List<User> findAll();
+    List<User> findAll(UserFilter filter);
 
     User findById(Long id);
 

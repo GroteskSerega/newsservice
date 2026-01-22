@@ -8,9 +8,7 @@ import java.util.List;
 
 public interface CategoryService {
 
-    List<Category> filterBy(CategoryFilter filter);
-
-    List<Category> findAll();
+    List<Category> findAll(CategoryFilter filter);
 
     Category findById(Long id);
 
