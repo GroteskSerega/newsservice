@@ -137,11 +137,11 @@ docker build -f Dockerfile_vanilla_native -t newservice:vanila-native .
 ```
 
 ### 6. Axiom (musl) Native Image Kit (NIK)
-Вершина оптимизации: компиляция в нативный бинарник с использованием **musl libc**.
+Вершина оптимизации: компиляция в нативный бинарник с использованием **PGO (Profile-Guided Optimization)**. Бинарник оптимизирован на основе реальных сценариев нагрузки (профилирование рантайма).
 - **Build Metrics**: ~15.0 мин (на i7-3720QM). Требует 8GB+ RAM для фазы анализа графа объектов.
 - **Startup**: **1.085s** (Ready to serve).
 - **Security**: Исполнение в среде **Alpaquita Cloud Native OS** от не-привилегированного пользователя (Non-root).
-- **Verdict**: Идеально для масштабируемых микросервисов и Serverless.
+- **Verdict**: Максимальная плотность (Density) размещения в облаке.
 ```
 docker build -f Dockerfile_axiom_native_pro -t newservice:native-pro .
 ```
