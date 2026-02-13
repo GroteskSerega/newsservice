@@ -1,15 +1,26 @@
-# Базовый образ, содержащий Java
-# FROM openjdk:27-ea-trixie
-FROM eclipse-temurin:21-jre-alpine
+# Copy layers:
+FROM eclipse-temurin:21-jre-alpine AS builder
 
-# Директория приложения внутри контейнера
+WORKDIR /app
+COPY build/libs/*.jar app.jar
+RUN java -Djarmode=layertools -jar app.jar extract
+
+# Make final image:
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Копирование JAR-файла приложения в контейнер
-COPY build/libs/newsservice-0.0.1-SNAPSHOT.jar app.jar
+RUN addgroup -S axiom && adduser -S axiom -G axiom
+USER axiom:axiom
 
-# Определение переменной среды
-ENV APP_SERVER_PORT=8080
+# Copy layers for cache
+COPY --from=builder /app/dependencies/ ./
+COPY --from=builder /app/spring-boot-loader/ ./
+COPY --from=builder /app/snapshot-dependencies/ ./
+COPY --from=builder /app/application/ ./
 
-# Команда для запуска приложения
-CMD ["java", "-jar", "app.jar"]
+# Optimization for java 21:
+ENTRYPOINT ["java", \
+            "-XX:+UseG1GC", \
+            "-XX:+UnlockExperimentalVMOptions", \
+            "-Dspring.threads.virtual.enabled=true", \
+            "org.springframework.boot.loader.launch.JarLauncher"]

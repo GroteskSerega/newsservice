@@ -1,20 +1,25 @@
 package com.news.newsservice.repository;
 
 import com.news.newsservice.entity.Category;
+import com.news.newsservice.entity.Category_;
 import com.news.newsservice.web.dto.v1.CategoryFilter;
+import jakarta.persistence.criteria.Expression;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.text.MessageFormat;
 import java.time.Instant;
 
 public interface CategorySpecification {
 
+    String TEMPLATE_LIKE = "%{0}%";
+
     static Specification<Category> withFilter(CategoryFilter categoryFilter) {
 
-        return Specification.where(byCategory(categoryFilter.getCategory()))
-                .and(byCreateAtBefore(categoryFilter.getCreateBefore()))
-                .and(byUpdateAtBefore(categoryFilter.getUpdateBefore()))
-                .and(byCreateAtAfter(categoryFilter.getCreateAfter()))
-                .and(byUpdateAtAfter(categoryFilter.getUpdateAfter()));
+        return Specification.allOf(byCategory(categoryFilter.category()))
+                .and(byCreateAtBefore(categoryFilter.createBefore()))
+                .and(byUpdateAtBefore(categoryFilter.updateBefore()))
+                .and(byCreateAtAfter(categoryFilter.createAfter()))
+                .and(byUpdateAtAfter(categoryFilter.updateAfter()));
     }
 
     static Specification<Category> byCategory(String category) {
@@ -23,7 +28,11 @@ public interface CategorySpecification {
                 return null;
             }
 
-            return criteriaBuilder.equal(root.get("category"), category);
+            String pattern = MessageFormat.format(TEMPLATE_LIKE, category.toLowerCase());
+
+            Expression<String> lowerCaseField = criteriaBuilder.lower(root.get(Category_.CATEGORY));
+
+            return criteriaBuilder.like(lowerCaseField, pattern);
         };
     }
 
@@ -33,7 +42,7 @@ public interface CategorySpecification {
                 return null;
             }
 
-            return criteriaBuilder.lessThanOrEqualTo(root.get("createAt"), createBefore);
+            return criteriaBuilder.lessThanOrEqualTo(root.get(Category_.CREATE_AT), createBefore);
         };
     }
 
@@ -43,7 +52,7 @@ public interface CategorySpecification {
                 return null;
             }
 
-            return criteriaBuilder.lessThanOrEqualTo(root.get("updateAt"), updateBefore);
+            return criteriaBuilder.lessThanOrEqualTo(root.get(Category_.UPDATE_AT), updateBefore);
         };
     }
 
@@ -53,7 +62,7 @@ public interface CategorySpecification {
                 return null;
             }
 
-            return criteriaBuilder.greaterThanOrEqualTo(root.get("createAt"), createAfter);
+            return criteriaBuilder.greaterThanOrEqualTo(root.get(Category_.CREATE_AT), createAfter);
         };
     }
 
@@ -63,7 +72,7 @@ public interface CategorySpecification {
                 return null;
             }
 
-            return criteriaBuilder.greaterThanOrEqualTo(root.get("updateAt"), updateAfter);
+            return criteriaBuilder.greaterThanOrEqualTo(root.get(Category_.UPDATE_AT), updateAfter);
         };
     }
 }

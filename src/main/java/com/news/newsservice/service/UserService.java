@@ -1,20 +1,25 @@
 package com.news.newsservice.service;
 
+import com.news.newsservice.entity.Role;
 import com.news.newsservice.entity.User;
 import com.news.newsservice.web.dto.v1.UserFilter;
+import com.news.newsservice.web.dto.v1.UserUpsertRequest;
 
 import java.util.List;
+import java.util.UUID;
 
 
 public interface UserService {
 
     List<User> findAll(UserFilter filter);
 
-    User findById(Long id);
+    User findById(UUID id);
 
-    User save(User user);
+    User findByUsername(String username);
 
-    User update(User user);
+    User save(User user, Role role);
 
-    void delete(Long id);
+    User update(UUID userId, UserUpsertRequest user, Role role);
+
+    void delete(UUID id);
 }

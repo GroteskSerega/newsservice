@@ -1,46 +1,53 @@
 package com.news.newsservice.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "news")
 public class News {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
+    @EqualsAndHashCode.Include
+    private UUID id;
 
     private String text;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @ToString.Exclude
     private Category category;
 
-    @OneToMany(mappedBy = "news",
-            cascade = CascadeType.ALL)
-    @ToString.Exclude
-    @Builder.Default
-    private List<Comment> comments =
-            new ArrayList<>();
+//    @BatchSize(size = 20)
+//    @OneToMany(mappedBy = "news",
+//            cascade = CascadeType.ALL)
+//    @Builder.Default
+//    private List<Comment> comments =
+//            new ArrayList<>();
 
     @CreationTimestamp
+    @Column(updatable = false)
     private Instant createAt;
 
     @UpdateTimestamp
     private Instant updateAt;
+
+    @Formula("(SELECT COUNT(*) FROM comments c WHERE c.news_id = id)")
+    private Integer countComments;
 }

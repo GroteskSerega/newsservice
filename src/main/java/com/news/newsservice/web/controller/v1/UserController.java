@@ -1,5 +1,7 @@
 package com.news.newsservice.web.controller.v1;
 
+import com.news.newsservice.entity.Role;
+import com.news.newsservice.entity.RoleType;
 import com.news.newsservice.mapper.v1.UserMapper;
 import com.news.newsservice.service.UserService;
 import com.news.newsservice.web.dto.ErrorResponse;
@@ -18,7 +20,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Tag(name = "User V1",
@@ -33,14 +38,14 @@ public class UserController {
 
     @Operation(
             summary = "Get users",
-            description = "Get users by filters"
+            description = "Get all users by filers"
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserListResponse.class))
+                                    schema = @Schema(implementation = UserListResponse.class))
                     }
             ),
             @ApiResponse(
@@ -52,6 +57,7 @@ public class UserController {
             )
     })
     @GetMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<UserListResponse> findAll(@Valid UserFilter filter) {
         return ResponseEntity.ok(
                 userMapper.userListToUserListResponse(
@@ -62,26 +68,27 @@ public class UserController {
 
     @Operation(
             summary = "Get user by id",
-            description = "Get user by id. Return id, username, password"
+            description = "Get user by id. Return id, username"
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserResponse.class))
+                                    schema = @Schema(implementation = UserResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "404",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> findById(@PathVariable Long id) {
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<UserResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(
                 userMapper.userToResponse(userService.findById(id))
         );
@@ -96,23 +103,26 @@ public class UserController {
                     responseCode = "201",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserResponse.class))
+                                    schema = @Schema(implementation = UserResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "400",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @PostMapping
-    public ResponseEntity<UserResponse> create(@RequestBody @Valid UserUpsertRequest request) {
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<UserResponse> create(@RequestBody @Valid UserUpsertRequest request,
+                                               @RequestParam RoleType roleType) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(userMapper.userToResponse(
                         userService.save(
-                                userMapper.requestToUser(request)))
+                                userMapper.requestToUser(request),
+                                Role.from(roleType)))
                 );
     }
 
@@ -125,31 +135,34 @@ public class UserController {
                     responseCode = "200",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserResponse.class))
+                                    schema = @Schema(implementation = UserResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "400",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "404",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> update(@PathVariable("id") Long userId,
-                                               @RequestBody @Valid UserUpsertRequest request) {
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<UserResponse> update(@PathVariable("id") UUID userId,
+                                               @RequestBody @Valid UserUpsertRequest request,
+                                               @RequestParam RoleType roleType) {
         return ResponseEntity.ok(
-                userMapper.userToResponse(userService.update(
-                        userMapper.requestToUser(userId,
-                                request)))
+                userMapper.userToResponse(
+                        userService.update(userId,
+                                request,
+                                Role.from(roleType)))
         );
     }
 
@@ -162,19 +175,20 @@ public class UserController {
                     responseCode = "204",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema)
+                                    schema = @Schema)
                     }
             ),
             @ApiResponse(
                     responseCode = "404",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }

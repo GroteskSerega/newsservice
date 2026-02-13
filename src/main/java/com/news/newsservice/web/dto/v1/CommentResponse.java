@@ -1,26 +1,16 @@
 package com.news.newsservice.web.dto.v1;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.time.Instant;
+import java.util.UUID;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CommentResponse {
-
-    private Long id;
-
-    private String message;
-
-    private UserResponse user;
-
-//    private NewsResponse news;
-    private Long newsId;
-
-    private Instant createAt;
-
-    private Instant updateAt;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record CommentResponse (
+        UUID id,
+        String message,
+        UserResponse user,
+        UUID newsId,
+        Instant createAt,
+        Instant updateAt) {
 }

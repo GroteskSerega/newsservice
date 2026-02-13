@@ -5,29 +5,30 @@ import com.news.newsservice.service.CategoryService;
 import com.news.newsservice.service.UserService;
 import com.news.newsservice.web.dto.v1.NewsUpsertRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 
 public abstract class NewsMapperDelegate implements NewsMapper {
 
-    @Autowired
     private UserService userService;
 
-    @Autowired
     private CategoryService categoryService;
 
-    @Override
-    public News requestToNews(NewsUpsertRequest request) {
-        News news = new News();
-        news.setText(request.getText());
-        news.setUser(userService.findById(request.getUserId()));
-        news.setCategory(categoryService.findById(request.getCategoryId()));
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
-        return news;
+    @Autowired
+    public void setCategoryService(CategoryService categoryService) {
+        this.categoryService = categoryService;
     }
 
     @Override
-    public News requestToNews(Long newsId, NewsUpsertRequest request) {
-        News news = requestToNews(request);
-        news.setId(newsId);
+    public News requestToNews(NewsUpsertRequest request, UserDetails userDetails) {
+        News news = new News();
+        news.setText(request.text());
+        news.setUser(userService.findByUsername(userDetails.getUsername()));
+        news.setCategory(categoryService.findById(request.categoryId()));
 
         return news;
     }
