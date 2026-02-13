@@ -18,7 +18,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 
 @RequiredArgsConstructor
@@ -41,7 +44,7 @@ public class CategoryController {
                     responseCode = "200",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = CategoryListResponse.class))
+                                    schema = @Schema(implementation = CategoryListResponse.class))
                     }
             ),
             @ApiResponse(
@@ -53,39 +56,11 @@ public class CategoryController {
             )
     })
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
     public ResponseEntity<CategoryListResponse> findAll(@Valid CategoryFilter filter) {
         return ResponseEntity.ok(
                 categoryMapper.categoryListToCategoryListResponse(
                         categoryService.findAll(filter)
-                )
-        );
-    }
-
-    @Operation(
-            summary = "Get category by id",
-            description = "Get category by id. Return category id, name"
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    content = {
-                            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = CategoryResponse.class))
-                    }
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    content = {
-                            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
-                    }
-            )
-    })
-    @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponse> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(
-                categoryMapper.categoryToResponse(
-                        categoryService.findById(id)
                 )
         );
     }
@@ -99,18 +74,19 @@ public class CategoryController {
                     responseCode = "201",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = CategoryResponse.class))
+                                    schema = @Schema(implementation = CategoryResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "400",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MODERATOR')")
     public ResponseEntity<CategoryResponse> create(@RequestBody @Valid CategoryUpsertRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(
@@ -131,32 +107,31 @@ public class CategoryController {
                     responseCode = "200",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = CategoryResponse.class))
+                                    schema = @Schema(implementation = CategoryResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "400",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "404",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryResponse> update(@PathVariable("id") Long categoryId,
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<CategoryResponse> update(@PathVariable("id") UUID categoryId,
                                                    @RequestBody @Valid CategoryUpsertRequest request) {
         return ResponseEntity.ok(
                 categoryMapper.categoryToResponse(
-                        categoryService.update(
-                                categoryMapper.requestToCategory(categoryId, request)
-                        )
+                        categoryService.update(categoryId, request)
                 )
         );
     }
@@ -170,20 +145,21 @@ public class CategoryController {
                     responseCode = "204",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema)
+                                    schema = @Schema)
                     }
             ),
             @ApiResponse(
                     responseCode = "404",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        categoryService.deleteById(id);
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        categoryService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

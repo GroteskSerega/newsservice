@@ -1,25 +1,29 @@
 package com.news.newsservice.repository;
 
+import com.news.newsservice.entity.Category_;
 import com.news.newsservice.entity.News;
+import com.news.newsservice.entity.News_;
+import com.news.newsservice.entity.User_;
 import com.news.newsservice.web.dto.v1.NewsFilter;
 import jakarta.persistence.criteria.Expression;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.UUID;
 
 public interface NewsSpecification {
 
     String TEMPLATE_LIKE = "%{0}%";
 
     static Specification<News> withFilter(NewsFilter newsFilter) {
-        return Specification.where(byText(newsFilter.getText()))
-                .and(byUserId(newsFilter.getUserId()))
-                .and(byCategoryId(newsFilter.getCategoryId()))
-                .and(byCreateAtBefore(newsFilter.getCreateBefore()))
-                .and(byUpdateAtBefore(newsFilter.getUpdateBefore()))
-                .and(byCreateAtAfter(newsFilter.getCreateAfter()))
-                .and(byUpdateAtAfter(newsFilter.getUpdateAfter()));
+        return Specification.allOf(byText(newsFilter.text()))
+                .and(byUserId(newsFilter.userId()))
+                .and(byCategoryId(newsFilter.categoryId()))
+                .and(byCreateAtBefore(newsFilter.createBefore()))
+                .and(byUpdateAtBefore(newsFilter.updateBefore()))
+                .and(byCreateAtAfter(newsFilter.createAfter()))
+                .and(byUpdateAtAfter(newsFilter.updateAfter()));
     }
 
     static Specification<News> byText(String text) {
@@ -30,29 +34,29 @@ public interface NewsSpecification {
 
             String pattern = MessageFormat.format(TEMPLATE_LIKE, text.toLowerCase());
 
-            Expression<String> lowerCaseField = criteriaBuilder.lower(root.get("text"));
+            Expression<String> lowerCaseField = criteriaBuilder.lower(root.get(News_.TEXT));
 
             return criteriaBuilder.like(lowerCaseField, pattern);
         };
     }
 
-    static Specification<News> byUserId(Long userId) {
+    static Specification<News> byUserId(UUID userId) {
         return (root, query, criteriaBuilder) -> {
             if (userId == null) {
                 return null;
             }
 
-            return criteriaBuilder.equal(root.get("user").get("id"), userId);
+            return criteriaBuilder.equal(root.get(News_.USER).get(User_.ID), userId);
         };
     }
 
-    static Specification<News> byCategoryId(Long categoryId) {
+    static Specification<News> byCategoryId(UUID categoryId) {
         return (root, query, criteriaBuilder) -> {
             if (categoryId == null) {
                 return null;
             }
 
-            return criteriaBuilder.equal(root.get("category").get("id"), categoryId);
+            return criteriaBuilder.equal(root.get(News_.CATEGORY).get(Category_.ID), categoryId);
         };
     }
 
@@ -62,7 +66,7 @@ public interface NewsSpecification {
                 return null;
             }
 
-            return criteriaBuilder.lessThanOrEqualTo(root.get("createAt"), createBefore);
+            return criteriaBuilder.lessThanOrEqualTo(root.get(News_.CREATE_AT), createBefore);
         };
     }
 
@@ -72,7 +76,7 @@ public interface NewsSpecification {
                 return null;
             }
 
-            return criteriaBuilder.lessThanOrEqualTo(root.get("updateAt"), updateBefore);
+            return criteriaBuilder.lessThanOrEqualTo(root.get(News_.UPDATE_AT), updateBefore);
         };
     }
 
@@ -82,7 +86,7 @@ public interface NewsSpecification {
                 return null;
             }
 
-            return criteriaBuilder.greaterThanOrEqualTo(root.get("createAt"), createAfter);
+            return criteriaBuilder.greaterThanOrEqualTo(root.get(News_.CREATE_AT), createAfter);
         };
     }
 
@@ -92,7 +96,7 @@ public interface NewsSpecification {
                 return null;
             }
 
-            return criteriaBuilder.greaterThanOrEqualTo(root.get("updateAt"), updateAfter);
+            return criteriaBuilder.greaterThanOrEqualTo(root.get(News_.UPDATE_AT), updateAfter);
         };
     }
 }

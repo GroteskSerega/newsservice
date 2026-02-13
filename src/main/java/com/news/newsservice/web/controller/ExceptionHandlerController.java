@@ -1,9 +1,9 @@
 package com.news.newsservice.web.controller;
 
 import com.news.newsservice.exception.EntityNotFoundException;
-import com.news.newsservice.exception.OperationUnauthorizedException;
+import com.news.newsservice.exception.ForbiddenException;
+import com.news.newsservice.exception.UserNotAuthenticatedException;
 import com.news.newsservice.web.dto.ErrorResponse;
-import com.sun.net.httpserver.HttpsServer;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,9 +37,15 @@ public class ExceptionHandlerController {
                 .body(new ErrorResponse(errorMessage));
     }
 
-    @ExceptionHandler(OperationUnauthorizedException.class)
-    public ResponseEntity<ErrorResponse> notUnauthorized(OperationUnauthorizedException ex) {
+    @ExceptionHandler(UserNotAuthenticatedException.class)
+    public ResponseEntity<ErrorResponse> forbidden(UserNotAuthenticatedException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse(ex.getLocalizedMessage()));
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> forbidden(ForbiddenException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse(ex.getLocalizedMessage()));
     }
 }

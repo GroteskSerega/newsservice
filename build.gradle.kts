@@ -1,7 +1,9 @@
 plugins {
 	java
-	id("org.springframework.boot") version "3.1.2"
-	id("io.spring.dependency-management") version "1.1.2"
+	id("org.springframework.boot") version "3.5.11-SNAPSHOT"
+	id("io.spring.dependency-management") version "1.1.7"
+	id("org.graalvm.buildtools.native") version "0.10.4"
+	id("org.hibernate.orm") version "6.6.42.Final"
 }
 
 group = "com.news"
@@ -14,6 +16,28 @@ java {
 	}
 }
 
+graalvmNative {
+	binaries {
+		named("main") {
+			metadataRepository {
+				enabled.set(true)
+			}
+
+//			buildArgs.add("-O2")
+//			buildArgs.add("--initialize-at-run-time=io.netty.util.internal.shaded.org.jctools.util.UnsafeAccess")
+			buildArgs.add("--report-unsupported-elements-at-runtime")
+		}
+	}
+}
+
+hibernate {
+	enhancement {
+		enableLazyInitialization.set(true)
+		enableDirtyTracking.set(true)
+		enableAssociationManagement.set(true)
+	}
+}
+
 configurations {
 	compileOnly {
 		extendsFrom(configurations.annotationProcessor.get())
@@ -22,19 +46,30 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url = uri("https://repo.spring.io/snapshot") }
 }
 
 dependencies {
+	implementation("org.liquibase:liquibase-core")
+
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4")
-	compileOnly("org.projectlombok:lombok:1.18.30")
-	runtimeOnly("org.postgresql:postgresql:42.6.0")
-	annotationProcessor("org.projectlombok:lombok:1.18.30")
-	implementation("org.mapstruct:mapstruct:1.5.3.Final")
-	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+	implementation("org.springframework.boot:spring-boot-starter-security")
+
+	compileOnly("org.projectlombok:lombok")
+	annotationProcessor("org.projectlombok:lombok")
+
+
+	runtimeOnly("org.postgresql:postgresql")
+
+	implementation("org.mapstruct:mapstruct:1.6.3")
+	annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
+
+	annotationProcessor("org.hibernate.orm:hibernate-jpamodelgen:6.4.4.Final")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("net.javacrumbs.json-unit:json-unit:2.38.0")

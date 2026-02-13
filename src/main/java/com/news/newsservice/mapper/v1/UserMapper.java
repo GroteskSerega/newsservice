@@ -4,34 +4,30 @@ import com.news.newsservice.entity.User;
 import com.news.newsservice.web.dto.v1.UserUpsertRequest;
 import com.news.newsservice.web.dto.v1.UserListResponse;
 import com.news.newsservice.web.dto.v1.UserResponse;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring",
-        unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        uses = {NewsMapper.class})
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
 
     User requestToUser(UserUpsertRequest request);
 
-    @Mapping(source = "userId", target = "id")
-    User requestToUser(Long userId,
-                       UserUpsertRequest request);
-
     UserResponse userToResponse(User user);
 
     default UserListResponse userListToUserListResponse(List<User> users) {
-        UserListResponse response = new UserListResponse();
-
-        response.setUsers(users
+        return new UserListResponse(users
                 .stream()
                 .map(this::userToResponse)
-                .collect(Collectors.toList()));
-
-        return response;
+                .toList());
     }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "username", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "createAt", ignore = true)
+    @Mapping(target = "updateAt", ignore = true)
+    void updateUser(UserUpsertRequest request, @MappingTarget User user);
 }

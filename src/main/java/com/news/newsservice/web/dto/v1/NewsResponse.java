@@ -1,34 +1,19 @@
 package com.news.newsservice.web.dto.v1;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class NewsResponse {
-
-    private Long id;
-
-    private String text;
-
-    private UserResponse user;
-
-    private CategoryResponse category;
-
-    private List<CommentResponse> comments =
-            new ArrayList<>();
-
-    private Integer countComments;
-
-    private Instant createAt;
-
-    private Instant updateAt;
+public record NewsResponse (
+        UUID id,
+        String text,
+        UserResponse user,
+        CategoryResponse category,
+        List<CommentResponse> comments,
+        Integer countComments,
+        Instant createAt,
+        Instant updateAt) {
 }

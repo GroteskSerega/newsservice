@@ -18,7 +18,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Tag(name = "Comment v1",
@@ -52,6 +57,7 @@ public class CommentController {
             )
     })
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
     public ResponseEntity<CommentListResponse> findAll(@Valid CommentFilter commentFilter) {
         return ResponseEntity.ok(
                 commentMapper.commentListToCommentListResponse(
@@ -62,7 +68,7 @@ public class CommentController {
 
     @Operation(
             summary = "Get comment by id",
-            description = "Get comment by id. Return id, message"
+            description = "Get comment by id. Return id, message, user"
     )
     @ApiResponses({
             @ApiResponse(
@@ -81,7 +87,8 @@ public class CommentController {
             )
     })
     @GetMapping("/{id}")
-    public ResponseEntity<CommentResponse> findById(@PathVariable Long id) {
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<CommentResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(
                 commentMapper.commentToResponse(
                         commentService.findById(id)
@@ -98,24 +105,26 @@ public class CommentController {
                     responseCode = "201",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = CommentResponse.class))
+                                    schema = @Schema(implementation = CommentResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "400",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @PostMapping
-    public ResponseEntity<CommentResponse> create(@RequestBody @Valid CommentUpsertRequest request) {
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<CommentResponse> create(@AuthenticationPrincipal UserDetails userDetails,
+                                                  @RequestBody @Valid CommentUpsertRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(
                         commentMapper.commentToResponse(
                                 commentService.save(
-                                        commentMapper.requestToComment(request)
+                                        commentMapper.requestToComment(request, userDetails)
                                 )
                         )
                 );
@@ -130,14 +139,14 @@ public class CommentController {
                     responseCode = "200",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = CommentResponse.class))
+                                    schema = @Schema(implementation = CommentResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "400",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             ),
             @ApiResponse(
@@ -151,18 +160,19 @@ public class CommentController {
                     responseCode = "404",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @PutMapping("/{id}")
-    public ResponseEntity<CommentResponse> update(@PathVariable("id") Long commentId,
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<CommentResponse> update(@AuthenticationPrincipal UserDetails userDetails,
+                                                  @PathVariable("id") UUID commentId,
                                                   @RequestBody @Valid CommentUpsertRequest request) {
         return ResponseEntity.ok(
                 commentMapper.commentToResponse(
-                        commentService.update(
-                                commentMapper.requestToComment(commentId, request)
-                        )
+                        commentService.update(commentId,
+                                request)
                 )
         );
     }
@@ -176,7 +186,7 @@ public class CommentController {
                     responseCode = "204",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema)
+                                    schema = @Schema)
                     }
             ),
             @ApiResponse(
@@ -190,12 +200,13 @@ public class CommentController {
                     responseCode = "404",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         commentService.delete(id);
         return ResponseEntity.noContent().build();
     }

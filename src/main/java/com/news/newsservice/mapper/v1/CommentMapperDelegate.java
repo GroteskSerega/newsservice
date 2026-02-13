@@ -6,29 +6,30 @@ import com.news.newsservice.service.NewsService;
 import com.news.newsservice.service.UserService;
 import com.news.newsservice.web.dto.v1.CommentUpsertRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 
 public abstract class CommentMapperDelegate implements CommentMapper {
 
-    @Autowired
     private UserService userService;
 
-    @Autowired
     private NewsService newsService;
 
-    @Override
-    public Comment requestToComment(CommentUpsertRequest request) {
-        Comment comment = new Comment();
-        comment.setMessage(request.getMessage());
-        comment.setUser(userService.findById(request.getUserId()));
-        comment.setNews(newsService.findById(request.getNewsId()));
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
-        return comment;
+    @Autowired
+    public void setNewsService(NewsService newsService) {
+        this.newsService = newsService;
     }
 
     @Override
-    public Comment requestToComment(Long commentId, CommentUpsertRequest request) {
-        Comment comment = requestToComment(request);
-        comment.setId(commentId);
+    public Comment requestToComment(CommentUpsertRequest request, UserDetails userDetails) {
+        Comment comment = new Comment();
+        comment.setMessage(request.message());
+        comment.setUser(userService.findByUsername(userDetails.getUsername()));
+        comment.setNews(newsService.findById(request.newsId()));
 
         return comment;
     }

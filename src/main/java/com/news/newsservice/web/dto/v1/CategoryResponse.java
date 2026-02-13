@@ -1,15 +1,9 @@
 package com.news.newsservice.web.dto.v1;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CategoryResponse {
+import java.util.UUID;
 
-    private Long id;
-
-    private String category;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record CategoryResponse (UUID id, String category) {
 }

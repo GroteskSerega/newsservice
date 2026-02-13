@@ -18,7 +18,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Tag(name = "News V1",
@@ -33,14 +38,14 @@ public class NewsController {
 
     @Operation(
             summary = "Get news",
-            description = "Get all news"
+            description = "Get news by filters"
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = NewsListResponse.class))
+                                    schema = @Schema(implementation = NewsListResponse.class))
                     }
             ),
             @ApiResponse(
@@ -52,6 +57,7 @@ public class NewsController {
             )
     })
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
     public ResponseEntity<NewsListResponse> findAll(@Valid NewsFilter filter) {
         return ResponseEntity.ok(
                 newsMapper.newsListToNewsListResponse(
@@ -69,19 +75,20 @@ public class NewsController {
                     responseCode = "200",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = NewsResponse.class))
+                                    schema = @Schema(implementation = NewsResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "404",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @GetMapping("/{id}")
-    public ResponseEntity<NewsResponse> findById(@PathVariable Long id) {
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<NewsResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(
                 newsMapper.newsToResponse(
                         newsService.findById(id)
@@ -98,24 +105,26 @@ public class NewsController {
                     responseCode = "201",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = NewsResponse.class))
+                                    schema = @Schema(implementation = NewsResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "400",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @PostMapping
-    public ResponseEntity<NewsResponse> create(@RequestBody @Valid NewsUpsertRequest request) {
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<NewsResponse> create(@AuthenticationPrincipal UserDetails userDetails,
+                                               @RequestBody @Valid NewsUpsertRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(
                         newsMapper.newsToResponse(
                                 newsService.save(
-                                        newsMapper.requestToNews(request)
+                                        newsMapper.requestToNews(request, userDetails)
                                 )
                         )
                 );
@@ -130,14 +139,14 @@ public class NewsController {
                     responseCode = "200",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = NewsResponse.class))
+                                    schema = @Schema(implementation = NewsResponse.class))
                     }
             ),
             @ApiResponse(
                     responseCode = "400",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             ),
             @ApiResponse(
@@ -151,20 +160,20 @@ public class NewsController {
                     responseCode = "404",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @PutMapping("/{id}")
-    public ResponseEntity<NewsResponse> update(@PathVariable("id") Long newsId,
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<NewsResponse> update(@PathVariable("id") UUID newsId,
                                                @RequestBody @Valid NewsUpsertRequest request) {
         return ResponseEntity.ok(
                 newsMapper.newsToResponse(
-                        newsService.update(
-                                newsMapper.requestToNews(newsId, request)
+                        newsService.update(newsId,
+                                request)
                         )
-                )
-        );
+                );
     }
 
     @Operation(
@@ -176,7 +185,7 @@ public class NewsController {
                     responseCode = "204",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema)
+                                    schema = @Schema)
                     }
             ),
             @ApiResponse(
@@ -190,12 +199,13 @@ public class NewsController {
                     responseCode = "404",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponse.class))
+                                    schema = @Schema(implementation = ErrorResponse.class))
                     }
             )
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MODERATOR')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         newsService.delete(id);
         return ResponseEntity.noContent().build();
     }

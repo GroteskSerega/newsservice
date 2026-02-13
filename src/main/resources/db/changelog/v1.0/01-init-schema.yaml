@@ -1,0 +1,52 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: s.nochvay
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column: { name: id, type: uuid, constraints: { primaryKey: true, nullable: false} }
+              - column: { name: username, type: varchar(100), constraints: { unique: true, nullable: false}}
+              - column: { name: password, type: varchar(100), constraints: { nullable: false } }
+              - column: { name: first_name, type: varchar(100) }
+              - column: { name: second_name, type: varchar(100) }
+              - column: { name: last_name, type: varchar(100) }
+              - column: { name: email, type: varchar(100), constraints: { nullable: false } }
+              - column: { name: create_at, type: timestamp, constraints: { nullable: false } }
+              - column: { name: update_at, type: timestamp }
+
+        - createTable:
+            tableName: role
+            columns:
+              - column: { name: id, type: uuid, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: authority, type: varchar(20), constraints: { nullable: false } }
+              - column: { name: user_id, type: uuid, constraints: { foreignKeyName: fk_role_user, referencedTableName: users, referencedColumnNames: id } }
+
+        - createTable:
+            tableName: categories
+            columns:
+              - column: { name: id, type: uuid, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: category, type: varchar(100), constraints: { nullable: false } }
+              - column: { name: create_at, type: timestamp }
+              - column: { name: update_at, type: timestamp }
+
+        - createTable:
+            tableName: news
+            columns:
+              - column: { name: id, type: uuid, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: text, type: text, constraints: { nullable: false } }
+              - column: { name: user_id, type: uuid, constraints: { foreignKeyName: fk_news_user, referencedTableName: users, referencedColumnNames: id } }
+              - column: { name: category_id, type: uuid, constraints: { foreignKeyName: fk_news_category, referencedTableName: categories, referencedColumnNames: id } }
+              - column: { name: create_at, type: timestamp }
+              - column: { name: update_at, type: timestamp }
+
+        - createTable:
+            tableName: comments
+            columns:
+              - column: { name: id, type: uuid, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: message, type: text, constraints: { nullable: false } }
+              - column: { name: user_id, type: uuid, constraints: { foreignKeyName: fk_comment_user, referencedTableName: users, referencedColumnNames: id } }
+              - column: { name: news_id, type: uuid, constraints: { foreignKeyName: fk_comment_news, referencedTableName: news, referencedColumnNames: id } }
+              - column: { name: create_at, type: timestamp }
+              - column: { name: update_at, type: timestamp }
