@@ -48,7 +48,13 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            AuthenticationManager authenticationManager) throws Exception {
         http.authorizeHttpRequests((auth) ->
-                        auth.requestMatchers("/api/v1/user/**",
+                        auth.requestMatchers("/actuator/health/**")
+                                .permitAll()
+                                .requestMatchers("/actuator/prometheus")
+                                .permitAll()
+                                .requestMatchers("/actuator/**")
+                                .hasRole("ADMIN")
+                                .requestMatchers("/api/v1/user/**",
                                         "/api/v1/category/**",
                                         "/api/v1/news/**",
                                         "/api/v1/comment/**")
