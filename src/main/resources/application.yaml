@@ -1,4 +1,28 @@
+info:
+  app:
+    name: "News service"
+    version: "1.0.0"
+    description: "Service for news portal"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus,env"
+  endpoint:
+    health:
+      show-details: ALWAYS
+      probes:
+        enabled: true
+    prometheus:
+      enabled: true
+  health:
+    readinessstate:
+      enabled: true
+
 spring:
+  main:
+    lazy-initialization: true
   application:
     name: newsservice
   jpa:

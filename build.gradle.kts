@@ -23,9 +23,18 @@ graalvmNative {
 				enabled.set(true)
 			}
 
-//			buildArgs.add("-O2")
+			buildArgs.add("-O2")
+//			buildArgs.add("-O3")
 //			buildArgs.add("--initialize-at-run-time=io.netty.util.internal.shaded.org.jctools.util.UnsafeAccess")
+			buildArgs.add("-H:+UnlockExperimentalVMOptions")
 			buildArgs.add("--report-unsupported-elements-at-runtime")
+
+//			if (project.hasProperty("nativeArgs")) {
+//				val args = project.property("nativeArgs").toString().split(" ")
+//				buildArgs.addAll(args)
+//			}
+
+//			buildArgs.addAll("--pgo-instrument")
 		}
 	}
 }
@@ -49,10 +58,16 @@ repositories {
 	maven { url = uri("https://repo.spring.io/snapshot") }
 }
 
+springBoot {
+	buildInfo()
+}
+
 dependencies {
 	implementation("org.liquibase:liquibase-core")
 
-	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+	implementation("io.micrometer:micrometer-registry-prometheus")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")

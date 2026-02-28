@@ -20,9 +20,9 @@ services:
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
-  newsservice-app:
-    image: newservice:native-pro
-    container_name: newsservice-native-pro
+  newsservice:
+    image: newsservice:native
+    container_name: newsservice-native
     networks:
       - news-network
     ports:
@@ -35,29 +35,37 @@ services:
       - DB_SCHEMA=news_schema
       - DB_USER=postgres
       - DB_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health/readiness"]
+      interval: 2s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
     depends_on:
       postgres-db:
         condition: service_healthy
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - news-network
 
-#  app-newsservice:
-#    image: app-newsservice
-#    networks:
-#      - compose-news-network
-#    ports:
-#      - "8080:8080"
-#    environment:
-#      - APP_SERVER_PORT=8080
-#      - DB_HOST=postgres
-#      - DB_PORT=5432
-#      - DB_NAME=news_db
-#      - DB_SCHEMA=news_schema
-#      - DB_USER=postgres
-#      - DB_PASSWORD=postgres
-#      - APP_ADMIN_USERNAME=admin
-#      - APP_ADMIN_PASSWORD=admin
-#    depends_on:
-#      - postgres
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - news-network
+    depends_on:
+      - prometheus
 
 networks:
   news-network:

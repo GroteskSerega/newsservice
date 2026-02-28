@@ -99,14 +99,14 @@ docker-compose down
 **Benefit**: Разделение зависимостей и прикладного кода позволяет эффективно использовать Docker Cache, минимизируя трафик при CI/CD.
 
 ```
-docker build -t newservice:layers .
+docker build -t newsservice:layers .
 ```
 
 ### 2. Uber-JAR (Legacy)
 Классическая сборка «все-в-одном».
 **Deprecated** (2026): Избыточный размер пересылаемых данных при минимальных изменениях в коде.
 ```
-docker build -f Dockerfile_uber_jar -t newservice:uber .
+docker build -f Dockerfile_uber_jar -t newsservice:uber .
 ```
 
 ### 3. Axiom (Alpaquita + Musl)
@@ -114,7 +114,7 @@ docker build -f Dockerfile_uber_jar -t newservice:uber .
 - **Base Image**: `bellsoft/liberica-runtime-alpine` (или Alpaquita).
 - **Benefit**: Баланс между скоростью сборки и эффективностью кеширования.
 ```
-docker build -f Dockerfile_axiom -t newservice:axiom .
+docker build -f Dockerfile_axiom -t newsservice:axiom .
 ```
 
 ### 4. Axiom (musl) Native Image Kit (NIK)
@@ -124,7 +124,7 @@ docker build -f Dockerfile_axiom -t newservice:axiom .
 - **Security**: Исполнение в среде **Alpaquita Cloud Native OS** от не-привилегированного пользователя (Non-root).
 - **Verdict**: Идеально для масштабируемых микросервисов и Serverless.
 ```
-docker build -f Dockerfile_axiom_native -t newservice:native .
+docker build -f Dockerfile_axiom_native -t newsservice:native .
 ```
 
 ### 5. Vanilla (debian:bookworm-slim) Native
@@ -133,17 +133,20 @@ docker build -f Dockerfile_axiom_native -t newservice:native .
 - **Startup**: **0.877s** (Агрессивная оптимизация ценой времени сборки).
 - **Issues**: Нестабильность сетевых загрузок при сборке и увеличенный размер итогового образа из-за веса Debian-слоев
 ```
-docker build -f Dockerfile_vanilla_native -t newservice:vanila-native .
+docker build -f Dockerfile_vanilla_native -t newsservice:vanila-native .
 ```
 
 ### 6. Axiom (musl) Native Image Kit (NIK)
+Future Work.
+- **Status**: Исследование в процессе (требует лицензии BellSoft NIK Pro).
+- **Target**: Внедрение **PGO (Profile Guided Optimization)** для достижения лимитов памяти в **<40** MB и сокращения времени отклика на 15-20%.
 Вершина оптимизации: компиляция в нативный бинарник с использованием **PGO (Profile-Guided Optimization)**. Бинарник оптимизирован на основе реальных сценариев нагрузки (профилирование рантайма).
-- **Build Metrics**: ~15.0 мин (на i7-3720QM). Требует 8GB+ RAM для фазы анализа графа объектов.
-- **Startup**: **1.085s** (Ready to serve).
+- **Build Metrics**: - мин (на i7-3720QM). Требует 8GB+ RAM для фазы анализа графа объектов.
+- **Startup**: **-** (Ready to serve).
 - **Security**: Исполнение в среде **Alpaquita Cloud Native OS** от не-привилегированного пользователя (Non-root).
 - **Verdict**: Максимальная плотность (Density) размещения в облаке.
 ```
-docker build -f Dockerfile_axiom_native_pro -t newservice:native-pro .
+docker build -f Dockerfile_axiom_native_pro -t newsservice:native-pro .
 ```
 
 ## Сводный результат
@@ -151,28 +154,39 @@ docker build -f Dockerfile_axiom_native_pro -t newservice:native-pro .
 Ниже приведён результат собранных образов, размеры.
 - Размеры образов:
 
-| REPOSITORY | TAG           | IMAGE ID     | CREATED        | SIZE  |
-|------------|---------------|--------------|----------------|-------|
-| newservice | layers        | abb75642c12a | 5 hours ago    | 422MB |
-| newservice | uber          | a82dfce79025 | 5 hours ago    | 419MB |
-| newservice | axiom         | 62b77b83e600 | 11 hours ago   | 324MB |
-| newservice | native        | d780bc3334a7 | 5 minutes ago  | 262MB |
-| newservice | vanila-native | 2c7917bbec95 | 32 seconds ago | 384MB |
-| newservice | native-pro    | 2742b5f971bd | 46 seconds ago | 262MB |
+| REPOSITORY  | TAG           | IMAGE ID     | BUILDING TIME (s) | SIZE  |
+|-------------|---------------|--------------|-------------------|-------|
+| newsservice | layers        | 53992e12ae50 | 10.8              | 429MB |
+| newsservice | uber          | 6bdb0c9b8ee5 | 7.3               | 425MB |
+| newsservice | axiom         | 49d59c1fc654 | 35.4              | 331MB |
+| newsservice | native        | 2ab55a6d015e | 797.0             | 264MB |
+| newsservice | vanila-native | 2b382df930b4 | 1270.2            | 388MB |
+| newsservice | native-pro    | -            | -                 | -     |
 
 - Ниже представлен результат команды Docker stats (1-й запуск).
 
 Внимание заслуживают показатели MEM USAGE и PIDS (количество системных потоков)
 <p> 1-й запуск:
 
-| CONTAINER ID | NAME                      | CPU % | MEM USAGE / LIMIT   | MEM % | NET I/O         | BLOCK I/O   | PIDS |
-|--------------|---------------------------|-------|---------------------|-------|-----------------|-------------|------|
-| 1c642efb721d | newsservice-layers        | 0.23% | 291MiB / 15.58GiB   | 1.82% | 33.4kB / 38.8kB | 0B / 32.8kB | 33   |
-| 440ca1610a73 | newsservice-uber          | 0.28% | 298.9MiB / 15.58GiB | 1.87% | 22.7kB / 26.6kB | 0B / 32.8kB | 34   |
-| 65dad413d1e6 | newsservice-axiom         | 0.32% | 352.4MiB / 15.58GiB | 2.21% | 22.7kB / 26.5kB | 0B / 32.8kB | 33   |
-| 03fa2facc54f | newsservice-native        | 0.03% | 110.5MiB / 15.58GiB | 0.69% | 25.4kB / 28.6kB | 0B / 0B     | 20   |
-| 5233bbdddada | newsservice-vanila-native | 0.06% | 74.89MiB / 15.58GiB | 0.47% | 22.6kB / 26.2kB | 2.58MB / 0B | 10   |
-| b14f4d920027 | newsservice-native-pro    | 0.06% | 44.85MiB / 15.58GiB | 0.28% | 22.5kB / 26kB   | 0B / 0B     | 11   |
+| CONTAINER ID | NAME                      | CPU % | MEM USAGE / LIMIT   | MEM % | NET I/O        | BLOCK I/O       | PIDS |
+|--------------|---------------------------|-------|---------------------|-------|----------------|-----------------|------|
+| b2cf6171b891 | newsservice-layers        | 0.23% | 318.8MiB / 15.58GiB | 2.00% | 36.4kB / 349kB | 11.8MB / 98.3kB | 46   |
+| d6e32f9c4a41 | newsservice-uber          | 0.28% | 306MiB / 15.58GiB   | 1.92% | 28.6kB / 237kB | 49.2kB / 61.4kB | 38   |
+| e33c652dbd0f | newsservice-axiom         | 0.32% | 358.8MiB / 15.58GiB | 2.25% | 28.6kB / 232kB | 0B / 65.5kB     | 42   |
+| 0efd33925948 | newsservice-native        | 0.03% | 47.53MiB / 15.58GiB | 0.30% | 27.2kB / 180kB | 0B / 0B         | 15   |
+| 8a80be55613b | newsservice-vanila-native | 0.06% | 35.01MiB / 15.58GiB | 0.22% | 28.1kB / 207kB | 0B / 0B         | 14   |
+| -            | newsservice-native-pro    | -     | -                   | -     | -              | -               | -    |
+
+- Ниже представлен результат значений времени запуска и latency по запросу-ответу (1-й запуск).
+
+| CONTAINER ID | NAME                      | Started(s) | process running (s) | Latency 1 request (ms) | Latency 2 request (ms) |
+|--------------|---------------------------|------------|---------------------|------------------------|------------------------|
+| b2cf6171b891 | newsservice-layers        | 29.396     | 31.252              | 1216                   | 403                    |
+| d6e32f9c4a41 | newsservice-uber          | 21.497     | 23.362              | 1228                   | 368                    |
+| e33c652dbd0f | newsservice-axiom         | 20.22      | 21.518              | 1515                   | 416                    |
+| 0efd33925948 | newsservice-native        | 2.056      | 2.151               | 884                    | 433                    |
+| 8a80be55613b | newsservice-vanila-native | 1.608      | 1.654               | 892                    | 465                    |
+| -            | newsservice-native-pro    | -          | -                   | -                      | -                      |
 
 - Ниже представлен результат команды Docker stats (2-й запуск).
 
@@ -181,38 +195,50 @@ docker build -f Dockerfile_axiom_native_pro -t newservice:native-pro .
 
 | CONTAINER ID | NAME                      | CPU % | MEM USAGE / LIMIT   | MEM % | NET I/O         | BLOCK I/O   | PIDS |
 |--------------|---------------------------|-------|---------------------|-------|-----------------|-------------|------|
-| 1c642efb721d | newsservice-layers        | 0.22% | 293.7MiB / 15.58GiB | 1.84% | 33.4kB / 38.8kB | 0B / 32.8kB | 33   |
-| 440ca1610a73 | newsservice-uber          | 0.22% | 352.7MiB / 15.58GiB | 2.21% | 33.4kB / 38.9kB | 0B / 32.8kB | 34   |
-| 65dad413d1e6 | newsservice-axiom         | 0.25% | 360.9MiB / 15.58GiB | 2.26% | 33.4kB / 38.9kB | 0B / 32.8kB | 33   |
-| 03fa2facc54f | newsservice-native        | 0.02% | 93.97MiB / 15.58GiB | 0.59% | 33.2kB / 38.2kB | 0B / 0B     | 11   |
-| 5233bbdddada | newsservice-vanila-native | 0.02% | 74.58MiB / 15.58GiB | 0.47% | 33.2kB / 38.1kB | 0B / 0B     | 10   |
-| b14f4d920027 | newsservice-native-pro    | 0.06% | 44.6MiB / 15.58GiB  | 0.28% | 33.2kB / 38.3kB | 0B / 0B     | 11   |
+| b2cf6171b891 | newsservice-layers        | 0.22% | 316.6MiB / 15.58GiB | 1.98% | 35.4kB / 93.5kB | 0B / 32.8kB | 38   |
+| d6e32f9c4a41 | newsservice-uber          | 0.22% | 315.5MiB / 15.58GiB | 1.98% | 36.1kB / 124kB  | 0B / 49.2kB | 38   |
+| e33c652dbd0f | newsservice-axiom         | 0.25% | 380.9MiB / 15.58GiB | 2.39% | 36.8kB / 152kB  | 0B / 49.2kB | 40   |
+| 0efd33925948 | newsservice-native        | 0.02% | 45.9MiB / 15.58GiB  | 0.29% | 39.2kB / 86.2kB | 0B / 0B     | 15   |
+| 8a80be55613b | newsservice-vanila-native | 0.02% | 35.59MiB / 15.58GiB | 0.22% | 34.9kB / 84.7kB | 0B / 0B     | 14   |
+| -            | newsservice-native-pro    | -     | -                   | -     | -               | -           | -    |
 
-Необходимо отметить, что скрость запуска образов с JRE составила 13 - 16 секунд
-Скорость запуска нативных образов - 1,1 - 1,5 секунд
+
+- Ниже представлен результат значений времени запуска и latency по запросу-ответу (2-й запуск).
+
+| CONTAINER ID | NAME                      | Started(s) | process running (s) | Latency 1 request (ms) | Latency 2 request (ms) |
+|--------------|---------------------------|------------|---------------------|------------------------|------------------------|
+| b2cf6171b891 | newsservice-layers        | 14.501     | 15.148              | 1337                   | 402                    |
+| d6e32f9c4a41 | newsservice-uber          | 14.981     | 16.085              | 1402                   | 432                    |
+| e33c652dbd0f | newsservice-axiom         | 12.611     | 13.313              | 1202                   | 377                    |
+| 0efd33925948 | newsservice-native        | 1.262      | 1.287               | 933                    | 485                    |
+| 8a80be55613b | newsservice-vanila-native | 1.28       | 1.303               | 1081                   | 479                    |
+| -            | newsservice-native-pro    | -          | -                   | -                      | -                      |
+
+Необходимо отметить, что скрость запуска образов с JRE составила 12,6 - 30 секунд
+Скорость запуска нативных образов - 1,2 - 2,1 секунд
 
 ### Итоги в виде таблицы
 JRE vs Axiom NIK (Pro) vs Vanilla Native
 Конфигурация: Java 21, Spring Boot 3.5.x, Hibernate 6.6 (Bytecode Enhancement), Project Loom, Postgres 17.
 Железо: Intel i7-3720QM (4/8), 16GB RAM.
 
-| Метрика         | JRE (Axiom/Layers) | Axiom NIK Native | Axiom NIK PRO (PGO) | Vanilla Native (Glibc) | Лучший результат        |
-|-----------------|--------------------|------------------|---------------------|------------------------|-------------------------|
-| Время сборки    | ~0.5 мин           | 11.5 мин         | 15.0 мин            | 20.5 мин               | Axiom NIK               |
-| Размер образа   | 422 MB             | 262 MB           | 262 MB              | 384 MB                 | Axiom NIK (-38%)        |
-| Старт (Startup) | 13.054 сек         | 1.040 сек        | 1.085 сек           | 0.877 сек              | Vanilla (Record)        |
-| RAM (Idle)      | 291.0 MiB          | 93.9 MiB         | 44.8 MiB            | 74.8 MiB               | Axiom PRO (-84%)        |
-| Потоки (PIDS)   | 33                 | 11               | 11                  | 10                     | Native (в 3 раза легче) |
-| 1-й Latency     | 1431 ms            | 946 ms           | 875 ms              | 885 ms                 | Axiom PRO               |
-| ОС (Runtime)	   | Alpine	            | Alpaquita        | Alpaquita           | Debian-slim            | Alpaquita (musl)        |
+| Метрика         | JRE (Layers) | JRE (Axiom) | Axiom NIK Native | Vanilla Native (Glibc) | Лучший результат                  |
+|-----------------|--------------|-------------|------------------|------------------------|-----------------------------------|
+| Время сборки    | 10.8 сек     | 35.4 мин    | 13.2 мин (797 c) | 21.1 мин (1270 c)      | JRE Layers                        |
+| Размер образа   | 429 MB       | 331 MB      | 264 MB           | 388 MB                 | Axiom NIK Native (-38%)           |
+| Старт (Startup) | 21.946 сек   | 16.415 сек  | 1.659 сек        | 1.444 сек              | Vanilla (Record)                  |
+| RAM (Idle)      | 317.7 MiB    | 369.8 MiB   | 46.7 MiB         | 35.3 MiB               | Vanilla (-88%)                    |
+| Потоки (PIDS)   | 42           | 41          | 15               | 14                     | Axiom NIK Native (в 3 раза легче) |
+| 1-й Latency     | 1276 ms      | 1358 ms     | 908 ms           | 986 ms                 | Axiom NIK Native                  |
+| ОС (Runtime)	   | Alpine	      | Alpaquita   | Alpaquita        | Debian-slim            | Alpaquita (musl)                  |
 
 ### Краткие выводы
-- **Экстремальная плотность (Density)**: Использование Axiom NIK Pro с профилированием (PGO) позволило снизить потребление памяти до невероятных 44,8 МБ. Это в 8 раз меньше, чем у стандартной JRE сборки. На одном сервере теперь можно запустить 20 инстансов newsservice вместо 2
-- **Project Loom в Native**: переход с классических потоков на виртуальные (Loom) в нативном образе сократил количество системных потоков (PIDS) с 33 до **11**. Это обеспечивает колоссальную устойчивость системы при тысячах одновременных соединений к Postgres.
+- **Экстремальная плотность (Density)**: Использование Axiom NIK Native позволило снизить потребление памяти до невероятных 47,5 МБ. Это в 8 раз меньше, чем у стандартной JRE сборки. На одном сервере теперь можно запустить 20 инстансов newsservice вместо 2.
+- **Project Loom в Native**: переход с классических потоков на виртуальные (Loom) в нативном образе сократил количество системных потоков (PIDS) с 46 до **14**. Это обеспечивает колоссальную устойчивость системы при тысячах одновременных соединений к Postgres.
 - **Hibernate & AOT**: Применение Hibernate Bytecode Enhancement на этапе сборки позволило полностью сохранить механизм Lazy Loading в нативном бинарнике, избежав ошибок генерации прокси в рантайме.
-- **Инфраструктурый выигрыш**: Axiom NIK (Alpaquita/musl) подтвердил лидерство в компактности, сэкономив 122 МБ по сравнению с Vanilla (Debian/glibc). Сборка на Axiom проходит почти в 2 раза быстрее конкурентов.
+- **Инфраструктурый выигрыш**: Axiom NIK (Alpaquita/musl) подтвердил лидерство в компактности, сэкономив 124 МБ по сравнению с Vanilla (Debian/glibc). Сборка на Axiom проходит почти в 2 раза быстрее конкурентов.
 
 ### Экономические выводы
-- **TCO (Total Cost of Ownership)**: Сокращение требований к RAM на 84% позволяет радикально снизить затраты на облачную инфраструктуру (AWS/Azure/Yandex Cloud).
-- **Scale-to-Zero Ready**: Несмотря на тяжелый реляционный стек, время старта сокращено с 13 секунд до **~1 секунды**. Это делает возможным использование сервиса в Serverless-архитектурах.
-- **Evolution Move**: В ходе R&D было принято архитектурное решение о выносе миграций (Liquibase) во внешние init-контейнеры. Это позволило добиться стабильности AOT-сборки и предсказуемого времени прогрева.
+- **TCO (Total Cost of Ownership)**: Сокращение требований к RAM на 88% позволяет радикально снизить затраты на облачную инфраструктуру (AWS/Azure/Yandex Cloud).
+- **Scale-to-Zero Ready**: Несмотря на тяжелый реляционный стек, время старта сокращено с 22 секунд до **~1.2 секунды**. Это делает возможным использование сервиса в Serverless-архитектурах.
+- **Evolution Move**: В ходе R&D было принято архитектурное решение о выносе миграций (Liquibase) во внешние init-контейнеры. Это позволило добиться стабильности AOT-сборки и предсказуемого времени прогрева (**Warmup time**).
