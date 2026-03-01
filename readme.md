@@ -5,7 +5,27 @@
 - **RBAC Model**: Предустановленный ADMIN для инициализации системы, поддержка ролей ADMIN, MODERATOR и USER.
 - **Async Engine**: Стек на базе Spring MVC с поддержкой Project Loom.
 - **Cloud Native**: Полная готовность к нативной компиляции и работе в Read-Only файловых системах.
+- **AOT-friendly Architecture**: Использование MapStruct, Static Metamodel и отказ от динамических прокси.
 - **Restful API**: Описание API доступно в формате swagger по адресу http://localhost:8080/swagger-ui/index.html#/
+- **High-Density**:  Оптимизация Hibernate-запросов через @EntityGraph и Slice для минимизации Heap-памяти.
+- **High-Perf JPA**: UUID v7, Specification API, Slice и @EntityGraph.
+- **Zero-Overhead Observability**: Интеграция с Prometheus и Actuator, адаптированная под Native Image (Zero Classloading Reflection).
+- **Infrastructure-as-Code Friendly**: Полная поддержка health и readiness проб для мгновенного автоскейлинга в Kubernetes/Knative.
+- **Grafana**: Мониторинг сервиса доступен по адресу http://localhost:3000/. ID готового Dashboard 11378.
+
+## Optimization Details
+- **Hibernate Enhancement**: Инструментация байт-кода на этапе сборки для поддержки Lazy Loading без динамических прокси.
+- **Runtime Hints**: Регистрация кастомных хинтов для сериализации сложных DTO и работы драйверов БД в AOT-режиме.
+- **Memory Management**: Жесткое ограничение кучи (`-Xmx64m`) при сохранении высокой пропускной способности за счет Project Loom.
+
+## Observability & Monitoring
+Сервис предоставляет полный набор инструментов для телеметрии:
+
+- **Health Check**: `GET /actuator/health` (Liveness & Readiness probes).
+- **Prometheus Metrics**: `GET /actuator/prometheus` (JVM, CPU, Connections).
+- **Deep Metrics**: `GET /actuator/metrics` (доступно для ADMIN).
+
+Для мониторинга нативного образа используются специфичные метрики `native_image_memory_used_bytes`, позволяющие отслеживать потребление RAM с точностью до байта.
 
 ## Build & Deployment
 Проект поддерживает стандартный цикл сборки Gradle и контейнеризацию:
